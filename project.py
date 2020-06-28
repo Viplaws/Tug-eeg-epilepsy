@@ -8,24 +8,16 @@ import pandas as pd
 from scipy.signal import welch
 import mat4py as m4p
 import scipy.io
-# colours for printing outputs
-class color:
-   PURPLE = '\033[95m'
-   CYAN = '\033[96m'
-   DARKCYAN = '\033[36m'
-   BLUE = '\033[94m'
-   GREEN = '\033[92m'
-   YELLOW = '\033[93m'
-   RED = '\033[91m'
-   BOLD = '\033[1m'
-   UNDERLINE = '\033[4m'
-   END = '\033[0m'
-
-pp = pprint.PrettyPrinter()
 x=[]
 y=[]
-for k in range(1,42):
-	#get patient data for all 90 patients available
+for i in range(0,4096):
+	p=[]
+	x.append(p)
+for i in range(0,4096):
+	p=[]
+	y.append(p)
+for k in range(1,101):
+	#get patient data for all 100 patients available
 	event='/home/vip/project/epilepsy/'+str(k)+'.edf'
 	f=pyedflib.EdfReader(event)
 	channel_names=f.getSignalLabels()
@@ -74,13 +66,21 @@ for k in range(1,42):
 	seiz_df = seiz_df[[channel for channel in seiz_df.columns if re.findall('EEG [A-Z]',channel)]]
 	# ...and remove these ones too
 	#seiz_df = seiz_df.drop(['EEG ROC-REF','EEG LOC-REF','EEG EKG1-REF'], 1)
+	colu=seiz_df['EEG A1-REF'].to_list()
+	s=len(colu)//int(4096)
+	count=0;
+	for l in range(0,len(colu),s):
+		if(count==4096):
+			break
+		for o in range(0,20):
+			x[count].append(colu[l+o])
+		count=count+1
+	print(len(y[0]))
 	print("Processing ")
-	print(k)
-	colu=seiz_df['EEG FP1-REF'].to_list()
-	x.append(colu)
+	print(k)	
 #converted the first column to 
 	# print(colu)
-for k in range(1,42):
+for k in range(1,101):
 	#get patient data for all 90 patients available
 	event='/home/vip/project/no_epilepsy/'+str(k)+'.edf'
 	f=pyedflib.EdfReader(event)
@@ -125,15 +125,22 @@ for k in range(1,42):
 	# name the columns as channel
 	df.columns.name = 'Channel'
 	seiz_df, seiz_freq = df,int(4096)
-	print("Processing ")
-	print(k)
+
 	# lets remove channels not in EEG
 	seiz_df = seiz_df[[channel for channel in seiz_df.columns if re.findall('EEG [A-Z]',channel)]]
 	# ...and remove these ones too
 	#seiz_df = seiz_df.drop(['EEG ROC-REF','EEG LOC-REF','EEG EKG1-REF'], 1)
-	colu=seiz_df['EEG FP1-REF'].to_list()
-	y.append(colu)
-#converted the first column to 
-	# print(colu)
-data={'Epilesy':x,'No_epilepsy':y}
+	colu=seiz_df['EEG A1-REF'].to_list()
+	s=len(colu)//int(4096)
+	count=0;
+	for l in range(0,len(colu),s):
+		if(count==4096):
+			break
+		for o in range(0,20):
+			y[count].append(colu[l+o])
+		count=count+1
+	print("Processing ")
+	print(k)
+
+data={'Epilepsy':x,'No_epilepsy':y}
 m4p.savemat('final.mat',data)
